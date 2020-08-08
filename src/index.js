@@ -43,22 +43,19 @@ class Game extends React.Component {
 		super(props);
 		this.state = {
 			history: [
-				{squares: Array(9).fill(null)},
+				{
+					squares: Array(9).fill(null),
+					xIsNext: true,
+				},
 			],
-			xIsNext: true,
+			moveNumber: 0,
 		};
 	}
 	
-	get nextPlayer () { return this.state.xIsNext? 'X' : 'O' };
+	get nextPlayer () { return this.current.xIsNext? 'X' : 'O' };
 	get winner () { return calculateWinner(this.current.squares) };
-	get status () {
-		return this.winner?
-			'Winner: ' + this.winner
-			: 'Next player: ' + this.nextPlayer;
-	}
 	get current () {
-		const history = this.state.history;
-		return history[history.length - 1];
+		return this.state.history[this.state.moveNumber];
 	}
 	
 	handleSquareClick (i) {
@@ -68,9 +65,35 @@ class Game extends React.Component {
 		const squares = [...this.current.squares];
 		squares[i] = this.nextPlayer;
 		this.setState({
-			history: [...this.state.history, {squares}],
-			xIsNext: !this.state.xIsNext,
+			history: [...this.state.history.slice(0, this.state.moveNumber+1), {
+				squares,
+				xIsNext: !this.current.xIsNext,
+			}],
+			moveNumber: this.state.moveNumber + 1,
 		});
+	}
+	timeTravel (i) {
+		this.setState({
+			...this.state,
+			moveNumber: i,
+		});
+	}
+	
+	get status () {
+		return this.winner?
+			'Winner: ' + this.winner
+			: 'Next player: ' + this.nextPlayer;
+	}
+	get moves () {
+		return this.state.history.map((entry, index) =>
+			<li key={index}>
+				<button onClick={() => this.timeTravel(index)}> {
+					index === 0?
+						"Go to start"
+						: "Go to move #" + index
+				} </button>
+			</li>
+		);
 	}
 	
 	render () {
@@ -84,7 +107,7 @@ class Game extends React.Component {
 				</div>
 				<div className="game-info">
 					<div>{this.status}</div>
-					<ol>{/* TODO */}</ol>
+					<ol>{this.moves}</ol>
 				</div>
 			</div>
 		);
