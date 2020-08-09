@@ -10,32 +10,29 @@ const Square = props =>
 		{props.value}
 	</button>;
 
+function TreeOf (props) {
+	return [0, 1, 2].map(i => props.builder(i));
+}
+
 function BoardLine (props) {
 	const line = props.line;
 	const squares = props.board.squares;
 	const onClick = props.board.onClick;
 	
-	const renderSquare = (x) =>
-		<Square
-			value={squares[line][x]}
-			onClick={() => onClick(x, line)}
-		/>;
-	
 	return <div className="board-row">
-		{renderSquare(0, line)}
-		{renderSquare(1, line)}
-		{renderSquare(2, line)}
+		<TreeOf builder={x =>
+			<Square
+				value={squares[line][x]}
+				onClick={() => onClick(x, line)}
+			/>
+		}/>
 	</div>;
 }
 
 function Board (props) {
-	return (
-		<>
-			<BoardLine line={0} board={props} />
-			<BoardLine line={1} board={props} />
-			<BoardLine line={2} board={props} />
-		</>
-	);
+	return <TreeOf builder={i =>
+		<BoardLine line={i} board={props} />
+	}/>;
 }
 
 class Game extends React.Component {
@@ -127,7 +124,7 @@ class Game extends React.Component {
 					/>
 				</div>
 				<div className="game-info">
-					<>{this.status}</>
+					{this.status}
 					<ol>{this.moves}</ol>
 				</div>
 			</div>
