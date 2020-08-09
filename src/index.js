@@ -6,6 +6,11 @@ const Square = props =>
 	<button
 		className="square"
 		onClick = {props.onClick}
+		style = {
+			props.winning?
+				{fontWeight: "bold"}
+				: {}
+		}
 	>
 		{props.value}
 	</button>;
@@ -18,12 +23,15 @@ function BoardLine (props) {
 	const line = props.line;
 	const squares = props.board.squares;
 	const onClick = props.board.onClick;
+	const winner = props.board.winner;
 	
 	return <div className="board-row">
 		<TreeOf builder={x =>
 			<Square
+				key={x}
 				value={squares[line][x]}
 				onClick={() => onClick(x, line)}
+				winning={winner?.some(i => Math.floor(i/3)===line && i%3===x)}
 			/>
 		}/>
 	</div>;
@@ -31,7 +39,7 @@ function BoardLine (props) {
 
 function Board (props) {
 	return <TreeOf builder={i =>
-		<BoardLine line={i} board={props} />
+		<BoardLine line={i} board={props} key={i} />
 	}/>;
 }
 
@@ -54,7 +62,7 @@ class Game extends React.Component {
 	}
 	
 	get nextPlayer () { return this.current.xIsNext? 'X' : 'O' };
-	get winner () { return calculateWinner(this.current.squares) };
+	get winner () { return calculateWinner(this.current.squares)?.winner };
 	get catsGame () {
 		for (let i=0; i<3; i++)
 			for (let j=0; j<3; j++)
@@ -121,6 +129,7 @@ class Game extends React.Component {
 					<Board
 						squares={this.current.squares}
 						onClick={(x, y) => this.handleSquareClick(x, y)}
+						winner={calculateWinner(this.current.squares)?.squares}
 					/>
 				</div>
 				<div className="game-info">
@@ -133,21 +142,25 @@ class Game extends React.Component {
 }
 
 function calculateWinner (squares) {
-	for (let i=0; i<3; i++) {
-		if (squares[0][i] && squares[0][i] === squares[1][i] && squares[0][i] === squares[2][i]) {
-			return squares[0][i];
+	const lines = [
+		[0, 1, 2],
+		[3, 4, 5],
+		[6, 7, 8],
+		[0, 3, 6],
+		[1, 4, 7],
+		[2, 5, 8],
+		[0, 4, 8],
+		[2, 4, 6],
+	];
+	for (let i = 0; i < lines.length; i++) {
+		const [a, b, c] = lines[i].map(i => squares[Math.floor(i/3)][i%3]);
+		if (a && a === b && a === c) {
+			return {
+				winner: a,
+				squares: lines[i],
+			};
 		}
 	}
-	for (let i=0; i<3; i++) {
-		if (squares[i][0] && squares[i][0] === squares[i][1] && squares[i][0] === squares[i][2]) {
-			return squares[i][0];
-		}
-	}
-	if (squares[1][1] &&
-		((squares[1][1] === squares[0][0] && squares[1][1] === squares[2][2]) ||
-		(squares[1][1] === squares[0][2] && squares[1][1] === squares[2][0]))
-	)
-		return squares[1][1];
 	return null;
 }
 
