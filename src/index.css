@@ -47,3 +47,7 @@ ol, ul {
 .game-info {
 	margin-left: 20px;
 }
+
+.status {
+	height: 2em;
+}

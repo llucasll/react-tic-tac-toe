@@ -46,7 +46,7 @@ class Game extends React.Component {
 		this.state = {
 			history: [
 				{
-					squares: this.empty(),
+					squares: this.#empty,
 					xIsNext: true,
 				},
 			],
@@ -55,9 +55,7 @@ class Game extends React.Component {
 		};
 	}
 	
-	empty () {
-		return Array(3).fill(null).map(() => Array(3).fill(null));
-	}
+	#empty = Array(3).fill(null).map(() => Array(3).fill(null));
 	
 	get nextPlayer () { return this.current.xIsNext? 'X' : 'O' };
 	get winner () { return calculateWinner(this.current.squares)?.winner };
@@ -126,29 +124,47 @@ class Game extends React.Component {
 		});
 	}
 	
+	get xIsTheFirst () {
+		return this.current.squares === this.#empty?
+			this.current.xIsNext
+			: null;
+	}
+	
 	render () {
-		return (
-			<div className="game">
-				<div className="game-board">
-					<Board
-						squares = {this.current.squares}
-						onClick = { (x, y) => this.handleSquareClick(x, y) }
-						winner = {calculateWinner(this.current.squares)?.squares}
-					/>
-				</div>
-				<div className="game-info">
-					{this.status}
-					<br /> <br />
-					<button onClick={() => this.setState({
-						...this.state,
-						reverseHistory: !this.state.reverseHistory,
-					})}>
-						Reverse History order
-					</button>
-					<ol>{this.moves}</ol>
-				</div>
+		return <div className="game">
+			<div className="game-board">
+				<Board
+					squares = {this.current.squares}
+					onClick = { (x, y) => this.handleSquareClick(x, y) }
+					winner = {calculateWinner(this.current.squares)?.squares}
+				/>
 			</div>
-		);
+			<div className="game-info">
+				<div className="status"> {
+					this.xIsTheFirst === null?
+						this.status :
+						<button onClick={() => this.setState({
+							...this.state,
+							history: [
+								{
+									squares: this.#empty,
+									xIsNext: !this.current.xIsNext,
+								},
+							],
+						})}>
+							{this.xIsTheFirst? "X": "O"} starts
+						</button>
+				} </div>
+				
+				<button onClick={() => this.setState({
+					...this.state,
+					reverseHistory: !this.state.reverseHistory,
+				})}>
+					Reverse History order
+				</button>
+				<ol>{this.moves}</ol>
+			</div>
+		</div>;
 	}
 }
 
