@@ -10,31 +10,31 @@ const Square = props =>
 		{props.value}
 	</button>;
 
-function Board (props) {
-	const renderSquare = (x, y) =>
+function BoardLine (props) {
+	const line = props.line;
+	const squares = props.board.squares;
+	const onClick = props.board.onClick;
+	
+	const renderSquare = (x) =>
 		<Square
-			value={props.squares[y][x]}
-			onClick={() => props.onClick(x, y)}
+			value={squares[line][x]}
+			onClick={() => onClick(x, line)}
 		/>;
 	
+	return <div className="board-row">
+		{renderSquare(0, line)}
+		{renderSquare(1, line)}
+		{renderSquare(2, line)}
+	</div>;
+}
+
+function Board (props) {
 	return (
-		<div>
-			<div className="board-row">
-				{renderSquare(0, 0)}
-				{renderSquare(1, 0)}
-				{renderSquare(2, 0)}
-			</div>
-			<div className="board-row">
-				{renderSquare(0, 1)}
-				{renderSquare(1, 1)}
-				{renderSquare(2, 1)}
-			</div>
-			<div className="board-row">
-				{renderSquare(0, 2)}
-				{renderSquare(1, 2)}
-				{renderSquare(2, 2)}
-			</div>
-		</div>
+		<>
+			<BoardLine line={0} board={props} />
+			<BoardLine line={1} board={props} />
+			<BoardLine line={2} board={props} />
+		</>
 	);
 }
 
@@ -127,7 +127,7 @@ class Game extends React.Component {
 					/>
 				</div>
 				<div className="game-info">
-					<div>{this.status}</div>
+					<>{this.status}</>
 					<ol>{this.moves}</ol>
 				</div>
 			</div>
