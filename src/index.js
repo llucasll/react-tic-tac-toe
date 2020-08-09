@@ -20,18 +20,15 @@ function TreeOf (props) {
 }
 
 function BoardLine (props) {
-	const line = props.line;
-	const squares = props.board.squares;
-	const onClick = props.board.onClick;
-	const winner = props.board.winner;
+	const {line, board} = props;
 	
 	return <div className="board-row">
 		<TreeOf builder={x =>
 			<Square
 				key={x}
-				value={squares[line][x]}
-				onClick={() => onClick(x, line)}
-				winning={winner?.some(i => Math.floor(i/3)===line && i%3===x)}
+				value={board.squares[line][x]}
+				onClick={() => board.onClick(x, line)}
+				winning={board.winner?.some(i => Math.floor(i/3)===line && i%3===x)}
 			/>
 		}/>
 	</div>;
@@ -54,6 +51,7 @@ class Game extends React.Component {
 				},
 			],
 			moveNumber: 0,
+			reverseHistory: false,
 		};
 	}
 	
@@ -104,22 +102,28 @@ class Game extends React.Component {
 				: 'Next player: ' + this.nextPlayer;
 	}
 	get moves () {
-		return this.state.history.map((entry, index) =>
-			<li key={index}>
+		const history = [...this.state.history];
+		if (this.state.reverseHistory)
+			history.reverse();
+		
+		return history.map((entry, index) => {
+			if (this.state.reverseHistory)
+				index = history.length -1 - index;
+			return <li key={index}>
 				<button
-					onClick = { () => this.timeTravel(index) }
-					style = {
-						this.state.moveNumber===index?
+					onClick={() => this.timeTravel(index)}
+					style={
+						this.state.moveNumber === index ?
 							{fontWeight: "bold"}
 							: {}
 					}
 				> {
-					index === 0?
+					index === 0 ?
 						"Go to start"
-						: "Go to move #" + index + " (" + entry.move.x + ", " + entry.move.y + ")"
+						: `Go to move #${index} (${entry.move.x}, ${entry.move.y})`
 				} </button>
 			</li>
-		);
+		});
 	}
 	
 	render () {
@@ -127,13 +131,20 @@ class Game extends React.Component {
 			<div className="game">
 				<div className="game-board">
 					<Board
-						squares={this.current.squares}
-						onClick={(x, y) => this.handleSquareClick(x, y)}
-						winner={calculateWinner(this.current.squares)?.squares}
+						squares = {this.current.squares}
+						onClick = { (x, y) => this.handleSquareClick(x, y) }
+						winner = {calculateWinner(this.current.squares)?.squares}
 					/>
 				</div>
 				<div className="game-info">
 					{this.status}
+					<br /> <br />
+					<button onClick={() => this.setState({
+						...this.state,
+						reverseHistory: !this.state.reverseHistory,
+					})}>
+						Reverse History order
+					</button>
 					<ol>{this.moves}</ol>
 				</div>
 			</div>
